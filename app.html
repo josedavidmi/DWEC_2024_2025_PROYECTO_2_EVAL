@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft 365 App</title>
+    <script src="https://alcdn.msauth.net/browser/2.33.0/js/msal-browser.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        pre {
+            text-align: left;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            display: inline-block;
+            width: 90%;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Microsoft 365 App</h1>
+    <button id="signIn">Iniciar Sesión</button>
+    <button id="getProfile" style="display:none;">Obtener Perfil</button>
+    <button id="signOut" style="display:none;">Cerrar Sesión</button>
+    <div id="output"></div>
+    <pre id="result"></pre>
+
+    <script>
+        // Configuración de MSAL.js
+        const msalConfig = {
+            auth: {
+                clientId: "TU_CLIENT_ID", // Reemplaza con tu Application (Client) ID
+                authority: "https://login.microsoftonline.com/common", // Multi-tenant
+                redirectUri: "http://localhost" // Cambia a la URL de tu app
+            }
+        };
+
+        const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+        // Referencias a elementos del DOM
+        const signInButton = document.getElementById("signIn");
+        const getProfileButton = document.getElementById("getProfile");
+        const signOutButton = document.getElementById("signOut");
+        const output = document.getElementById("output");
+        const result = document.getElementById("result");
+
+        // Permisos requeridos
+        const loginRequest = {
+            scopes: ["User.Read"] // Permiso para leer el perfil del usuario
+        };
+
+        // Iniciar sesión
+        signInButton.addEventListener("click", async () => {
+            try {
+                const loginResponse = await msalInstance.loginPopup(loginRequest);
+                console.log("Usuario autenticado:", loginResponse.account);
+                output.textContent = `Bienvenido, ${loginResponse.account.username}`;
+                signInButton.style.display = "none";
+                getProfileButton.style.display = "inline-block";
+                signOutButton.style.display = "inline-block";
+            } catch (error) {
+                console.error("Error al iniciar sesión:", error);
+                output.textContent = "Error al iniciar sesión.";
+            }
+        });
+
+        // Obtener perfil del usuario
+        getProfileButton.addEventListener("click", async () => {
+            try {
+                const account = msalInstance.getAllAccounts()[0];
+                const tokenResponse = await msalInstance.acquireTokenSilent({
+                    scopes: ["User.Read"],
+                    account: account
+                });
+                const response = await fetch("https://graph.microsoft.com/v1.0/me", {
+                    headers: {
+                        Authorization: `Bearer ${tokenResponse.accessToken}`,
+                    },
+                });
+                const profile = await response.json();
+                console.log(profile);
+                result.textContent = JSON.stringify(profile, null, 2);
+            } catch (error) {
+                console.error("Error al obtener el perfil:", error);
+                result.textContent = "Error al obtener el perfil.";
+            }
+        });
+
+        // Cerrar sesión
+        signOutButton.addEventListener("click", () => {
+            msalInstance.logoutPopup();
+            output.textContent = "";
+            result.textContent = "";
+            signInButton.style.display = "inline-block";
+            getProfileButton.style.display = "none";
+            signOutButton.style.display = "none";
+        });
+    </script>
+</body>
+</html>
