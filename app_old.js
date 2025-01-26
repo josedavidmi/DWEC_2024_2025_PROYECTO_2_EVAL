@@ -1,9 +1,8 @@
 // Importar las funciones necesarias desde Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
-
-// Configuración de Firebase (reemplaza con tu configuración)
-
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: "AIzaSyAeJ0yF0UEplWsgmihcSqrKbyYZNKTj3IU",
     authDomain: "proyecto-2-eval-2024-2025.firebaseapp.com",
@@ -14,10 +13,9 @@ const firebaseConfig = {
     measurementId: "G-4QYNXXK0ZE"
 };
 
-
 // Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.getAuth(app);
 
 // Referencias al DOM
 const signupEmail = document.getElementById("signupEmail");
@@ -37,7 +35,7 @@ signupButton.addEventListener("click", async () => {
     const password = signupPassword.value;
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await firebase.createUserWithEmailAndPassword(auth, email, password);
         console.log("Usuario registrado:", userCredential.user);
         alert("Registro exitoso. Por favor, inicia sesión.");
         signupEmail.value = "";
@@ -54,7 +52,7 @@ signinButton.addEventListener("click", async () => {
     const password = signinPassword.value;
 
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await firebase.signInWithEmailAndPassword(auth, email, password);
         console.log("Usuario autenticado:", userCredential.user);
         userDetails.textContent = `Bienvenido: ${userCredential.user.email}`;
         document.getElementById("signin").style.display = "none";
@@ -69,7 +67,7 @@ signinButton.addEventListener("click", async () => {
 // Cerrar sesión
 signoutButton.addEventListener("click", async () => {
     try {
-        await signOut(auth);
+        await firebase.signOut(auth);
         console.log("Sesión cerrada");
         userDetails.textContent = "";
         document.getElementById("signin").style.display = "block";
